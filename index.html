@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gym Tracker</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           Variables y Sistema de Diseño (Dark Pro)
+           ========================================= */
+        :root {
+            --bg-color: #000000;
+            --accent-color: #ccff00;
+            --accent-glow: rgba(204, 255, 0, 0.15);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overscroll-behavior-y: none;
+            padding: 24px;
+            background-image: radial-gradient(circle at 50% 0%, rgba(204,255,0,0.05) 0%, transparent 50%);
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* =========================================
+           HEADER PRINCIPAL
+           ========================================= */
+        #main-header {
+            margin-top: 16px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        h1 span {
+            color: var(--accent-color);
+        }
+
+        /* =========================================
+           NAVEGACIÓN DE EJERCICIOS
+           ========================================= */
+        #nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .btn-back {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 10px 16px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(16px);
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover, .btn-back:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        /* =========================================
+           GRID CATEGORÍAS
+           ========================================= */
+        #menu-categorias {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .category-btn:last-child {
+            grid-column: 1 / -1;
+        }
+
+        .category-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            cursor: pointer;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .category-btn:hover, .category-btn:active {
+            background: var(--accent-glow);
+            border-color: rgba(204, 255, 0, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .category-btn:active {
+            transform: translateY(1px);
+        }
+
+        .icon-wrapper {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-color);
+            transition: all 0.3s ease;
+        }
+
+        .category-btn:hover .icon-wrapper, .category-btn:active .icon-wrapper {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            box-shadow: 0 0 16px var(--accent-glow);
+        }
+
+        .category-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* =========================================
+           LISTA DE EJERCICIOS
+           ========================================= */
+        #lista-ejercicios {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding-bottom: 40px;
+        }
+
+        .exercise-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            animation: slideUp 0.3s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .exercise-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .exercise-info h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .exercise-info p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .btn-action {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .btn-action:active {
+            transform: scale(0.95);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            background: var(--glass-bg);
+            border: 1px dashed var(--glass-border);
+            border-radius: 20px;
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <!-- 1. HEADER PRINCIPAL -->
+        <header id="main-header">
+            <p class="subtitle" id="auth-status">Verificando sesión...</p>
+            <h1>Hola, <span id="user-name">...</span></h1>
+        </header>
+
+        <!-- 2. NAVEGACIÓN (Oculto por defecto) -->
+        <div id="nav-header" style="display: none;">
+            <button class="btn-back" onclick="volverAlMenu()">
+                <i data-lucide="arrow-left"></i> Volver
+            </button>
+            <h2 class="section-title" id="current-category">Categoría</h2>
+        </div>
+
+        <!-- 3. MENÚ DE CATEGORÍAS -->
+        <div id="menu-categorias">
+            <button class="category-btn" onclick="seleccionarCategoria('Pecho')">
+                <div class="icon-wrapper"><i data-lucide="dumbbell"></i></div>
+                <span class="category-name">Pecho</span>
+            </button>
+            <button class="category-btn" onclick="seleccionarCategoria('Espalda')">
+                <div class="icon-wrapper"><i data-lucide="shield"></i></div>
+                <span class="category-name">Espalda</span>
+            </button>
+            <button class="category-btn" onclick="seleccionarCategoria('Bíceps')">
+                <div class="icon-wrapper"><i data-lucide="zap"></i></div>
+                <span class="category-name">Bíceps</span>
+            </button>
+            <button class="category-btn" onclick="seleccionarCategoria('Tríceps')">
+                <div class="icon-wrapper"><i data-lucide="target"></i></div>
+                <span class="category-name">Tríceps</span>
+            </button>
+            <button class="category-btn" onclick="seleccionarCategoria('Hombros')">
+                <div class="icon-wrapper"><i data-lucide="arrow-up-circle"></i></div>
+                <span class="category-name">Hombros</span>
+            </button>
+            <button class="category-btn" onclick="seleccionarCategoria('Piernas')">
+                <div class="icon-wrapper"><i data-lucide="flame"></i></div>
+                <span class="category-name">Piernas</span>
+            </button>
+            <button class="category-btn" onclick="seleccionarCategoria('Cardio')">
+                <div class="icon-wrapper"><i data-lucide="activity"></i></div>
+                <span class="category-name">Cardio</span>
+            </button>
+        </div>
+
+        <!-- 4. LISTA DE EJERCICIOS -->
+        <div id="lista-ejercicios" style="display: none;">
+            <!-- Contenido generado dinámicamente -->
+        </div>
+    </div>
+
+    <!-- ICONOS LUCIDE -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- VARIABLES DE ENTORNO LOCALES -->
+    <!-- Cargamos estáticamente el script para evitar errores de CORS abriendo en local (file://) -->
+    <script src="./env.js"></script>
+
+    <!-- LÓGICA DE LA APLICACIÓN Y FIREBASE SDK V10 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        // Recuperar secretos pasados por el tag env.js de arriba
+        const env = window.env;
+
+        // =========================================
+        // 1. Asegurar Interfaz Visual (Iconos)
+        // =========================================
+        // Ejecutamos esto primero para que si Firebase falla, la UI se vea bien.
+        lucide.createIcons();
+
+        // Extraemos secretos y claves desde el archivo de entorno seguro
+        window.userUid = env.TEST_USER_ID; 
+        window.dbInstance = null; 
+
+        // =========================================
+        // 2. Configuración de Firebase Inyectada
+        // =========================================
+        const firebaseConfig = {
+            apiKey: env.FIREBASE_API_KEY,
+            projectId: env.FIREBASE_PROJECT_ID,
+            appId: env.FIREBASE_APP_ID
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            window.dbInstance = getFirestore(app);
+
+            // =========================================
+            // 3. Lógica de Autenticación
+            // =========================================
+            onAuthStateChanged(auth, (user) => {
+                const statusEl = document.getElementById('auth-status');
+                const nameEl = document.getElementById('user-name');
+
+                if (user) {
+                    window.userUid = user.uid;
+                    statusEl.innerText = 'Bienvenido de vuelta';
+                    statusEl.style.color = 'var(--accent-color)';
+                    nameEl.innerText = user.displayName || 'Atleta';
+                } else {
+                    statusEl.innerText = 'Modo Pruebas (ID Forzado)';
+                    statusEl.style.color = '#ffaa00';
+                    nameEl.innerText = 'Tester';
+                }
+            });
+        } catch (error) {
+            console.error("Firebase no pudo iniciar:", error);
+            const statusEl = document.getElementById('auth-status');
+            statusEl.innerText = 'Falta configurar tu apiKey';
+            statusEl.style.color = '#ff4444';
+        }
+
+        // =========================================
+        // 3. Transformación del Flujo y UI
+        // =========================================
+        // Se exportan a window para que los eventos onClick del HTML puedan llamarlas
+        
+        window.seleccionarCategoria = async function(categoria) {
+            // Feedback Haptico
+            if (navigator.vibrate) navigator.vibrate(50);
+            
+            // 1. Ocultar el menú de categorías y cabecera principal
+            document.getElementById('main-header').style.display = 'none';
+            document.getElementById('menu-categorias').style.display = 'none';
+            
+            // 2. Mostrar navegación y contenedor de lista
+            document.getElementById('nav-header').style.display = 'flex';
+            document.getElementById('current-category').innerText = categoria;
+            
+            const listaDiv = document.getElementById('lista-ejercicios');
+            listaDiv.style.display = 'flex';
+            listaDiv.innerHTML = '<div class="empty-state">Buscando ejercicios...</div>';
+
+            // 3. Validar si está logueado
+            if (!window.userUid) {
+                listaDiv.innerHTML = '<div class="empty-state">Debes iniciar sesión para ver tus ejercicios.</div>';
+                return;
+            }
+
+            try {
+                // 4. Query a Firestore
+                const q = query(
+                    collection(window.dbInstance, "exercises"), 
+                    where("category", "==", categoria),
+                    where("userId", "==", window.userUid)
+                );
+                
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    listaDiv.innerHTML = `<div class="empty-state">No hay ejercicios agregados en ${categoria}.</div>`;
+                    return;
+                }
+
+                listaDiv.innerHTML = ''; // Limpiar contenedor
+
+                // Renderizar Tarjetas
+                let delay = 0;
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'exercise-card';
+                    // Pequeño escalonado en animación para verse limpio
+                    card.style.animationDelay = `${delay}s`; 
+                    delay += 0.05;
+
+                    card.innerHTML = `
+                        <div class="exercise-info">
+                            <h3>${data.name || 'Sin nombre'}</h3>
+                            <p>${data.description || 'Sin descripción de series'}</p>
+                        </div>
+                        <button class="btn-action" onclick="entrenarEjercicio('${doc.id}')">Entrenar</button>
+                    `;
+                    listaDiv.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error("Error obteniendo ejercicios:", error);
+                // Si la DB falla (por ej: falta API Key), mostramos un fallback bonito
+                listaDiv.innerHTML = `
+                    <div class="empty-state" style="color: #ffaa00; border-color: #ffaa0044;">
+                        No se pudo conectar a la base de datos.<br>Asegúrate de configurar apiKey y projectId en tu firebaseConfig.
+                    </div>
+                `;
+            }
+        };
+
+        window.volverAlMenu = function() {
+            if (navigator.vibrate) navigator.vibrate(50);
+            
+            // Ocultar sección de ejercicios
+            document.getElementById('nav-header').style.display = 'none';
+            document.getElementById('lista-ejercicios').style.display = 'none';
+            
+            // Restablecer vista principal
+            document.getElementById('main-header').style.display = 'block';
+            document.getElementById('menu-categorias').style.display = 'grid';
+        };
+
+        window.entrenarEjercicio = function(ejercicioId) {
+            if (navigator.vibrate) navigator.vibrate(50);
+            alert(`Iniciando rutina de ejercicio: ${ejercicioId}`);
+        };
+
+    </script>
+</body>
+</html>
