@@ -319,7 +319,7 @@
     <!-- LÓGICA DE LA APLICACIÓN Y FIREBASE SDK V10 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         // Recuperar secretos pasados por el tag env.js de arriba
@@ -357,20 +357,30 @@
                 const nameEl = document.getElementById('user-name');
 
                 if (user) {
-                    window.userUid = user.uid;
-                    statusEl.innerText = 'Bienvenido de vuelta';
+                    // Mantener el userUid del env para queries de Firestore
+                    // pero registrar que estamos autenticados
+                    statusEl.innerText = 'Conectado';
                     statusEl.style.color = 'var(--accent-color)';
                     nameEl.innerText = user.displayName || 'Atleta';
+                    console.log('Auth OK. UID de auth:', user.uid);
                 } else {
-                    statusEl.innerText = 'Modo Pruebas (ID Forzado)';
+                    // Iniciar sesión anónima para que Firestore permita las lecturas
+                    // (las reglas requieren request.auth != null)
+                    statusEl.innerText = 'Conectando...';
                     statusEl.style.color = '#ffaa00';
-                    nameEl.innerText = 'Tester';
+                    nameEl.innerText = '...';
+                    signInAnonymously(auth).catch(err => {
+                        console.error('Error en auth anónima:', err);
+                        statusEl.innerText = 'Error de autenticación';
+                        statusEl.style.color = '#ff4444';
+                        nameEl.innerText = 'Offline';
+                    });
                 }
             });
         } catch (error) {
             console.error("Firebase no pudo iniciar:", error);
             const statusEl = document.getElementById('auth-status');
-            statusEl.innerText = 'Falta configurar tu apiKey';
+            statusEl.innerText = 'Error de conexión';
             statusEl.style.color = '#ff4444';
         }
 
@@ -440,10 +450,13 @@
 
             } catch (error) {
                 console.error("Error obteniendo ejercicios:", error);
-                // Si la DB falla (por ej: falta API Key), mostramos un fallback bonito
+                let errorMsg = error.message || 'Error desconocido';
+                if (errorMsg.includes('permission')) {
+                    errorMsg = 'Permisos insuficientes. Verifica las reglas de Firestore para que permitan lectura al userId configurado.';
+                }
                 listaDiv.innerHTML = `
                     <div class="empty-state" style="color: #ffaa00; border-color: #ffaa0044;">
-                        No se pudo conectar a la base de datos.<br>Asegúrate de configurar apiKey y projectId en tu firebaseConfig.
+                        ${errorMsg}
                     </div>
                 `;
             }
